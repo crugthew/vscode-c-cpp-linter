@@ -1,0 +1,182 @@
+{
+    "activationEvents": ["onLanguage:cpp", "onLanguage:c", "onCommand:c-cpp-linter.run"],
+    "categories": ["Linters"],
+    "contributes": {
+        "commands": [
+            {
+                "command": "c-cpp-linter.run",
+                "title": "C/C++ Linter: Run"
+            },
+            {
+                "command": "c-cpp-linter.clearFile",
+                "title": "C/C++ Linter: Clear Diagnostics For File"
+            },
+            {
+                "command": "c-cpp-linter.clearAll",
+                "title": "C/C++ Linter: Clear All Diagnostics"
+            }
+        ],
+        "configuration": {
+            "properties": {
+                "c-cpp-linter.additionalCompilationFlags": {
+                    "default": ["-Wno-unknown-warning-option"],
+                    "description": "Can be used to add additional flags for the compilation.",
+                    "type": "array"
+                },
+                "c-cpp-linter.additionalCppCheckFlags": {
+                    "default": ["--std=c++17", "--platform=unix64"],
+                    "description": "Additional flags for 'cppcheck'.",
+                    "type": "array"
+                },
+                "c-cpp-linter.buildFolderPath": {
+                    "default": "${workspaceFolder}/build",
+                    "description": "Path to the folder where 'compile_commands.json' exists.",
+                    "type": "string"
+                },
+                "c-cpp-linter.clangTidyChecksPath": {
+                    "default": "${workspaceFolder}/.vscode/.clang-tidy.json",
+                    "description": "Path to the 'clang-tidy' configuration file.",
+                    "type": "string"
+                },
+                "c-cpp-linter.clangTidyDiagnosticKeywords": {
+                    "default": [["error"], ["warning"], []],
+                    "description": "Keywords for outputs that should be treated as errors, warnings, information.",
+                    "type": "array"
+                },
+                "c-cpp-linter.clangTidyEnabled": {
+                    "default": true,
+                    "description": "'clang-tidy' running is enabled.",
+                    "type": "boolean"
+                },
+                "c-cpp-linter.clangTidyParserExpression": {
+                    "default": "(.*):(\\d+):(\\d+): (error|warning): (.*)",
+                    "description": "The regular expression used to parse output.",
+                    "type": "string"
+                },
+                "c-cpp-linter.clangTidyPath": {
+                    "default": "/usr/bin/clang-tidy",
+                    "description": "'clang-tidy' path.",
+                    "type": "string"
+                },
+                "c-cpp-linter.compilationStageFlag": {
+                    "default": "-fsyntax-only",
+                    "description": "Can be used to only run the compilation stage and not full assembly. This replaces the '-c' flag.",
+                    "type": "string"
+                },
+                "c-cpp-linter.compilerDiagnosticKeywords": {
+                    "default": [["error"], ["warning"], []],
+                    "description": "Keywords for outputs that should be treated as errors, warnings, information.",
+                    "type": "array"
+                },
+                "c-cpp-linter.compilerEnabled": {
+                    "default": true,
+                    "description": "Compiler running is enabled.",
+                    "type": "boolean"
+                },
+                "c-cpp-linter.compilerParserExpression": {
+                    "default": "(.*):(\\d+):(\\d+): (error|warning): (.*)",
+                    "description": "The regular expression used to parse output.",
+                    "type": "string"
+                },
+                "c-cpp-linter.compilerPath": {
+                    "default": "/usr/bin/clang",
+                    "description": "The compiler to use. This replaces the compiler used in 'compile_commands.json'.",
+                    "type": "string"
+                },
+                "c-cpp-linter.cppCheckChecks": {
+                    "default": ["warning", "style", "performance", "portability", "information"],
+                    "description": "Checks to use with 'cppcheck'.",
+                    "type": "array"
+                },
+                "c-cpp-linter.cppCheckDiagnosticKeywords": {
+                    "default": [["error"], ["warning", "style", "performance", "portability"], ["information"]],
+                    "description": "Keywords for outputs that should be treated as errors, warnings, information.",
+                    "type": "array"
+                },
+                "c-cpp-linter.cppCheckEnabled": {
+                    "default": true,
+                    "description": "Running 'cppcheck' enabled.",
+                    "type": "boolean"
+                },
+                "c-cpp-linter.cppCheckParserExpression": {
+                    "default": "(.*):(\\d+):(\\d+): (error|warning|style|performance|portability|information): (.*)",
+                    "description": "The regular expression used to parse output.",
+                    "type": "string"
+                },
+                "c-cpp-linter.cppCheckPath": {
+                    "default": "/usr/bin/cppcheck",
+                    "description": "'cppcheck' path.",
+                    "type": "string"
+                },
+                "c-cpp-linter.ignoredPaths": {
+                    "default": [],
+                    "description": "Ignored paths list. (regex)",
+                    "type": "array"
+                },
+                "c-cpp-linter.maximumParallelFilesChecked": {
+                    "default": 4,
+                    "description": "Maximum number of files checked in parallel. Others will be added onto a queue.",
+                    "type": "number"
+                },
+                "c-cpp-linter.runOnOpen": {
+                    "default": true,
+                    "description": "Run on open.",
+                    "type": "boolean"
+                },
+                "c-cpp-linter.runOnSave": {
+                    "default": true,
+                    "description": "Run on save.",
+                    "type": "boolean"
+                },
+                "c-cpp-linter.showInformationDialog": {
+                    "default": false,
+                    "description": "Show the information dialog.",
+                    "type": "boolean"
+                },
+                "c-cpp-linter.showOutputFromLinters": {
+                    "default": false,
+                    "description": "Show all output from linters.",
+                    "type": "boolean"
+                },
+                "c-cpp-linter.sourceFileExtensions": {
+                    "default": ["c", "cpp"],
+                    "description": "Source file extensions.",
+                    "type": "array"
+                }
+            },
+            "title": "c-cpp-linter"
+        }
+    },
+    "description": "C/C++ linter using various command-line tools.",
+    "devDependencies": {
+        "@types/glob": "^8.0.0",
+        "@types/mocha": "^10.0.1",
+        "@types/node": "16.x",
+        "@types/vscode": "^1.74.0",
+        "@typescript-eslint/eslint-plugin": "^5.45.0",
+        "@typescript-eslint/parser": "^5.45.0",
+        "@vscode/test-electron": "^2.2.0",
+        "eslint": "^8.28.0",
+        "glob": "^8.0.3",
+        "mocha": "^10.1.0",
+        "typescript": "^4.9.3"
+    },
+    "displayName": "C/C++ Linter",
+    "engines": {
+        "vscode": "^1.74.0"
+    },
+    "extensionKind": ["workspace"],
+    "icon": "",
+    "keywords": ["c", "c++", "linter", "clang", "clang-tidy"],
+    "license": "SEE LICENSE",
+    "main": "./out/extension.js",
+    "name": "c-cpp-linter",
+    "publisher": "crugthew",
+    "scripts": {
+        "compile": "tsc -p ./",
+        "lint": "eslint src --ext ts",
+        "vscode:prepublish": "npm run compile",
+        "watch": "tsc -watch -p ./"
+    },
+    "version": "1.0.0"
+}
