@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "publisher": "crugthew",
     "engines": {
-        "vscode": "^1.74.0"
+        "vscode": "^1.70.0"
     },
     "license": "SEE LICENSE IN LICENSE.md",
     "displayName": "C/C++ Linter",
@@ -18,6 +18,7 @@
         "clang",
         "clang-tidy"
     ],
+    "preview": false,
     "main": "./out/extension.js",
     "contributes": {
         "commands": [
@@ -32,6 +33,20 @@
             {
                 "command": "c-cpp-linter.clearAll",
                 "title": "C/C++ Linter: Clear All Diagnostics"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "c-cpp-linter.run",
+                "key": "ctrl+l ctrl+f"
+            },
+            {
+                "command": "c-cpp-linter.clearFile",
+                "key": "ctrl+l ctrl+c"
+            },
+            {
+                "command": "c-cpp-linter.clearAll",
+                "key": "ctrl+l ctrl+shift+c"
             }
         ],
         "configuration": {
