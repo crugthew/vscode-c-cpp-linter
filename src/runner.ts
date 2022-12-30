@@ -102,7 +102,9 @@ export async function runOnFile(
     _running = [file, ..._running];
     showProgress(status, logger);
 
+    let success: boolean = true;
     let result: string[] = ["", "", ""];
+
     try {
         function empty(): Thenable<string> {
             return new Promise((resolve) => {
@@ -116,6 +118,8 @@ export async function runOnFile(
             getCppCheckEnabled() ? runCommandOnProcess(getCppCheckTaskForFile(file), ReturnedOutput.ERROR, logger) : empty()
         ]);
     } catch (error) {
+        success = false;
+
         const errorMessage = getErrorMessage(error);
         logger.appendLine(`> Something failed with error: ${errorMessage}`);
         vscode.window.showErrorMessage(errorMessage);
@@ -124,16 +128,18 @@ export async function runOnFile(
     if (_running.includes(file)) {
         _running.splice(_running.indexOf(file), 1);
 
-        logger.appendLine(`> Tasks completed for file: ${file.fsPath}. Updating diagnostics...`);
-        updateDiagnostics(
-            file,
-            [
-                new TaskResult(result[0], new RegExp(getCompilerParserExpression(), "g"), getCompilerDiagnosticKeywords()),
-                new TaskResult(result[1], new RegExp(getClangTidyParserExpression(), "g"), getClangTidyDiagnosticKeywords()),
-                new TaskResult(result[2], new RegExp(getCppCheckParserExpression(), "g"), getCppCheckDiagnosticKeywords())
-            ],
-            diagnosticsCollection
-        );
+        if (success) {
+            logger.appendLine(`> Tasks completed for file: ${file.fsPath}. Updating diagnostics...`);
+            updateDiagnostics(
+                file,
+                [
+                    new TaskResult(result[0], new RegExp(getCompilerParserExpression(), "g"), getCompilerDiagnosticKeywords()),
+                    new TaskResult(result[1], new RegExp(getClangTidyParserExpression(), "g"), getClangTidyDiagnosticKeywords()),
+                    new TaskResult(result[2], new RegExp(getCppCheckParserExpression(), "g"), getCppCheckDiagnosticKeywords())
+                ],
+                diagnosticsCollection
+            );
+        }
     } else {
         logger.appendLine(`> Tasks were was cancelled for file: ${file.fsPath}. Skipping diagnostics update...`);
     }

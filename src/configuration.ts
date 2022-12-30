@@ -204,7 +204,7 @@ function getCompilationCommandFromConfigurationDatabase(file: vscode.Uri): Comma
             vscode.Uri.file(value["file"]).fsPath === file.fsPath
         );
     });
-    if (valueForFile.length !== 1) {
+    if (valueForFile.length === 0) {
         throw Error(`Source file '${file.fsPath}' is not present in 'compile_commands.json' database.`);
     }
 
