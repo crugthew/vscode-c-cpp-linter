@@ -100,14 +100,7 @@ export enum ReturnedOutput {
     BOTH
 }
 
-export function runCommandOnProcess(task: Task | null, returnedOutput: ReturnedOutput, logger: vscode.OutputChannel): Thenable<string> {
-    if (!task) {
-        logger.appendLine(`> No configuration found! Please check your 'compile_commands.json' is correct and findable!`);
-        return new Promise((resolve) => {
-            resolve("");
-        });
-    }
-
+export function runCommandOnProcess(task: Task, returnedOutput: ReturnedOutput, logger: vscode.OutputChannel): Thenable<string> {
     const processId = task.command.file.fsPath + task.name;
     return vscode.window.withProgress(
         {

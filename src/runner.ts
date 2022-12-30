@@ -34,6 +34,13 @@ export class TaskResult {
 let _running: vscode.Uri[] = [];
 let _runQueue: vscode.Uri[] = [];
 
+function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    return String(error);
+}
+
 function showProgress(status: vscode.StatusBarItem, logger: vscode.OutputChannel): void {
     const runCount = _running.length;
     const queueCount = _runQueue.length;
@@ -93,25 +100,33 @@ export async function runOnFile(
     _running = [file, ..._running];
     showProgress(status, logger);
 
-    async function emptyFunction() {
-        return "";
+    try {
+        function empty(): Thenable<string> {
+            return new Promise((resolve) => {
+                resolve("");
+            });
+        }
+
+        const result = await Promise.all([
+            getCompilerEnabled() ? runCommandOnProcess(getCompileTaskForFile(file), ReturnedOutput.ERROR, logger) : empty(),
+            getClangTidyEnabled() ? runCommandOnProcess(getClangTidyTaskForFile(file), ReturnedOutput.NORMAL, logger) : empty(),
+            getCppCheckEnabled() ? runCommandOnProcess(getCppCheckTaskForFile(file), ReturnedOutput.ERROR, logger) : empty()
+        ]);
+
+        updateDiagnostics(
+            file,
+            [
+                new TaskResult(result[0], new RegExp(getCompilerParserExpression(), "g"), getCompilerDiagnosticKeywords()),
+                new TaskResult(result[1], new RegExp(getClangTidyParserExpression(), "g"), getClangTidyDiagnosticKeywords()),
+                new TaskResult(result[2], new RegExp(getCppCheckParserExpression(), "g"), getCppCheckDiagnosticKeywords())
+            ],
+            diagnosticsCollection
+        );
+    } catch (error) {
+        const errorMessage = getErrorMessage(error);
+        logger.appendLine(`> Something failed with error: ` + errorMessage);
+        vscode.window.showErrorMessage(errorMessage);
     }
-
-    const result = await Promise.all([
-        getCompilerEnabled() ? runCommandOnProcess(getCompileTaskForFile(file), ReturnedOutput.ERROR, logger) : emptyFunction(),
-        getClangTidyEnabled() ? runCommandOnProcess(getClangTidyTaskForFile(file), ReturnedOutput.NORMAL, logger) : emptyFunction(),
-        getCppCheckEnabled() ? runCommandOnProcess(getCppCheckTaskForFile(file), ReturnedOutput.ERROR, logger) : emptyFunction()
-    ]);
-
-    updateDiagnostics(
-        file,
-        [
-            new TaskResult(result[0], new RegExp(getCompilerParserExpression(), "g"), getCompilerDiagnosticKeywords()),
-            new TaskResult(result[1], new RegExp(getClangTidyParserExpression(), "g"), getClangTidyDiagnosticKeywords()),
-            new TaskResult(result[2], new RegExp(getCppCheckParserExpression(), "g"), getCppCheckDiagnosticKeywords())
-        ],
-        diagnosticsCollection
-    );
 
     _running.splice(_running.indexOf(file), 1);
     showProgress(status, logger);
