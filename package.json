@@ -1,6 +1,6 @@
 {
     "name": "c-cpp-linter",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "publisher": "crugthew",
     "repository": {
         "type": "git",
@@ -213,7 +213,7 @@
                 "c-cpp-linter.ignoredPaths": {
                     "type": "array",
                     "default": [],
-                    "description": "Ignored paths list. (regex)"
+                    "description": "List of regular expression paths for which diagnostics will not be shown."
                 },
                 "c-cpp-linter.runOnOpen": {
                     "type": "boolean",
