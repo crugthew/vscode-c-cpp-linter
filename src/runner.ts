@@ -45,11 +45,11 @@ function showProgress(status: vscode.StatusBarItem, logger: vscode.OutputChannel
     const runCount = _running.length;
     const queueCount = _runQueue.length;
 
-    let tooltip = displayName + ": idle";
+    let tooltip = `${displayName}: idle`;
     let text = "-";
 
     if (runCount > 0 && queueCount > 0) {
-        tooltip = displayName + `: ${runCount} processes running, ${queueCount} processes in run queue`;
+        tooltip = `${displayName}: ${runCount} processes running, ${queueCount} processes in run queue`;
         text = `${_running.length} | ${_runQueue.length}`;
 
         tooltip += "\n\n Running:";
@@ -61,7 +61,7 @@ function showProgress(status: vscode.StatusBarItem, logger: vscode.OutputChannel
             tooltip += `\n ${file.fsPath}`;
         }
     } else if (runCount > 0) {
-        tooltip = displayName + `: ${runCount} processes running`;
+        tooltip = `${displayName}: ${runCount} processes running`;
         text = `${_running.length}`;
 
         tooltip += "\n\n Running:";
@@ -74,10 +74,10 @@ function showProgress(status: vscode.StatusBarItem, logger: vscode.OutputChannel
     status.text = text;
 
     if (runCount > 0) {
-        logger.appendLine("> Processes running: " + runCount);
+        logger.appendLine(`> Processes running: ${runCount}`);
     }
     if (queueCount > 0) {
-        logger.appendLine("> Processes in queue: " + queueCount);
+        logger.appendLine(`> Processes in queue: ${queueCount}`);
     }
 }
 
@@ -88,9 +88,11 @@ export async function runOnFile(
     diagnosticsCollection: vscode.DiagnosticCollection
 ): Promise<void> {
     if (_running.includes(file)) {
+        logger.appendLine(`> Task is already running for file: ${file.fsPath}. Skipping duplicate task...`);
         return;
     } else if (_running.length >= getMaximumParallelFilesChecked()) {
         if (!_runQueue.includes(file)) {
+            logger.appendLine(`> Task moved to queue for file: ${file.fsPath}.`);
             _runQueue = [file, ..._runQueue];
             showProgress(status, logger);
         }
@@ -100,6 +102,7 @@ export async function runOnFile(
     _running = [file, ..._running];
     showProgress(status, logger);
 
+    let result: string[] = ["", "", ""];
     try {
         function empty(): Thenable<string> {
             return new Promise((resolve) => {
@@ -107,12 +110,21 @@ export async function runOnFile(
             });
         }
 
-        const result = await Promise.all([
+        result = await Promise.all([
             getCompilerEnabled() ? runCommandOnProcess(getCompileTaskForFile(file), ReturnedOutput.ERROR, logger) : empty(),
             getClangTidyEnabled() ? runCommandOnProcess(getClangTidyTaskForFile(file), ReturnedOutput.NORMAL, logger) : empty(),
             getCppCheckEnabled() ? runCommandOnProcess(getCppCheckTaskForFile(file), ReturnedOutput.ERROR, logger) : empty()
         ]);
+    } catch (error) {
+        const errorMessage = getErrorMessage(error);
+        logger.appendLine(`> Something failed with error: ${errorMessage}`);
+        vscode.window.showErrorMessage(errorMessage);
+    }
 
+    if (_running.includes(file)) {
+        _running.splice(_running.indexOf(file), 1);
+
+        logger.appendLine(`> Tasks completed for file: ${file.fsPath}. Updating diagnostics...`);
         updateDiagnostics(
             file,
             [
@@ -122,13 +134,10 @@ export async function runOnFile(
             ],
             diagnosticsCollection
         );
-    } catch (error) {
-        const errorMessage = getErrorMessage(error);
-        logger.appendLine(`> Something failed with error: ` + errorMessage);
-        vscode.window.showErrorMessage(errorMessage);
+    } else {
+        logger.appendLine(`> Tasks were was cancelled for file: ${file.fsPath}. Skipping diagnostics update...`);
     }
 
-    _running.splice(_running.indexOf(file), 1);
     showProgress(status, logger);
 
     if (_runQueue.length > 0) {
@@ -138,4 +147,15 @@ export async function runOnFile(
 
         await runOnFile(newFileToCheck, status, logger, diagnosticsCollection);
     }
+}
+
+export function cancelRun(file: vscode.Uri): void {
+    if (_running.includes(file)) {
+        _running.splice(_running.indexOf(file), 1);
+    }
+}
+
+export function cancelAllRuns(): void {
+    _running = [];
+    _runQueue = [];
 }

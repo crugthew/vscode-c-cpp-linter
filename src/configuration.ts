@@ -18,7 +18,7 @@ function getConfiguration(): vscode.WorkspaceConfiguration {
 function getWorkspaceFolderForFile(file: vscode.Uri): vscode.Uri {
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(file);
     if (!workspaceFolder) {
-        throw new Error("Can't resolve workspace folder for file: " + file.fsPath);
+        throw new Error(`Can't resolve workspace folder for file: ${file.fsPath}`);
     }
 
     return workspaceFolder.uri;
@@ -192,7 +192,7 @@ export class Task {
 function getCompilationCommandFromConfigurationDatabase(file: vscode.Uri): Command {
     const compileCommandsJsonFile = vscode.Uri.joinPath(getBuildFolderPath(getWorkspaceFolderForFile(file)), "compile_commands.json");
     if (!existsSync(compileCommandsJsonFile.fsPath)) {
-        throw new Error("Could not locate 'compile_commands.json' database in path: " + compileCommandsJsonFile.fsPath);
+        throw new Error(`Could not locate 'compile_commands.json' database in path: ${compileCommandsJsonFile.fsPath}`);
     }
 
     const valueForFile = JSON.parse(readFileSync(compileCommandsJsonFile.fsPath, "utf8")).filter((value: any) => {
@@ -205,7 +205,7 @@ function getCompilationCommandFromConfigurationDatabase(file: vscode.Uri): Comma
         );
     });
     if (valueForFile.length !== 1) {
-        throw Error("File '" + file.fsPath + "' is not present in 'compile_commands.json' database.");
+        throw Error(`Source file '${file.fsPath}' is not present in 'compile_commands.json' database.`);
     }
 
     return new Command(
@@ -223,7 +223,7 @@ export function getCompileTaskForFile(file: vscode.Uri): Task {
         throw new Error("Compiler is undefined.");
     }
     if (!existsSync(compiler.fsPath)) {
-        throw new Error("Compiler does not exist in path: " + file.fsPath);
+        throw new Error(`Compiler does not exist in path: ${compiler.fsPath}`);
     }
 
     const task = new Task(compiler.fsPath, getCompilationCommandFromConfigurationDatabase(file));
@@ -261,7 +261,7 @@ export function getClangTidyTaskForFile(file: vscode.Uri): Task {
 
     const clangTidyChecksJson = JSON.parse(readFileSync(clangTidyChecksJsonFile.fsPath, "utf8"));
     if (!clangTidyChecksJson.hasOwnProperty("checks")) {
-        throw new Error("Incorrect JSON format for file: " + file.fsPath);
+        throw new Error(`Incorrect JSON format for file: ${clangTidyChecksJsonFile.fsPath}`);
     }
 
     const checks = ["-*"];
@@ -272,7 +272,7 @@ export function getClangTidyTaskForFile(file: vscode.Uri): Task {
     }
     if (clangTidyChecksJson["checks"].hasOwnProperty("disabled")) {
         for (const key of clangTidyChecksJson["checks"]["disabled"]) {
-            checks.push("-" + key);
+            checks.push(`-${key}`);
         }
     }
 
@@ -281,7 +281,7 @@ export function getClangTidyTaskForFile(file: vscode.Uri): Task {
         throw new Error("Linter is undefined.");
     }
     if (!existsSync(linter.fsPath)) {
-        throw new Error("Linter does not exist in path: " + file.fsPath);
+        throw new Error(`Linter does not exist in path: ${linter.fsPath}`);
     }
 
     return new Task(
@@ -302,10 +302,10 @@ export function getCppCheckTaskForFile(file: vscode.Uri): Task {
         throw new Error("Linter is undefined.");
     }
     if (!existsSync(linter.fsPath)) {
-        throw new Error("Linter does not exist in path: " + file.fsPath);
+        throw new Error(`Linter does not exist in path: ${linter.fsPath}`);
     }
 
-    const command = [linter.fsPath, "--enable=" + getCppCheckChecks().join(",")];
+    const command = [linter.fsPath, `--enable=${getCppCheckChecks().join(",")}`];
     getAdditionalCppCheckFlags().forEach((value: string) => {
         command.push(value);
     });

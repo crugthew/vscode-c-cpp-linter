@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import {internalName, displayName, getSourceFileExtensions, getRunOnOpen, getRunOnSave} from "./configuration";
 import {clearDiagnosticsForFile, clearAllDiagnostics} from "./diagnostics";
-import {runOnFile} from "./runner";
+import {runOnFile, cancelRun, cancelAllRuns} from "./runner";
 
 function toFileUri(file: vscode.TextDocument): vscode.Uri | null {
     if (file.uri.scheme !== "file") {
@@ -64,6 +64,7 @@ export function activate(context: vscode.ExtensionContext): void {
             return;
         }
 
+        cancelRun(fileUri);
         clearDiagnosticsForFile(fileUri, diagnosticsCollection);
     }
 
@@ -79,7 +80,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return await _run(vscode.window.activeTextEditor.document);
     }
 
-    context.subscriptions.push(vscode.commands.registerCommand(internalName + ".run", _runOnActiveFile));
+    context.subscriptions.push(vscode.commands.registerCommand(`${internalName}.run`, _runOnActiveFile));
 
     function _clearActiveFile(): void {
         if (vscode.window.activeTextEditor === undefined) {
@@ -91,15 +92,17 @@ export function activate(context: vscode.ExtensionContext): void {
             return;
         }
 
+        cancelRun(fileUri);
         clearDiagnosticsForFile(fileUri, diagnosticsCollection);
     }
 
     function _clearAll(): void {
+        cancelAllRuns();
         clearAllDiagnostics(diagnosticsCollection);
     }
 
-    context.subscriptions.push(vscode.commands.registerCommand(internalName + ".clearFile", _clearActiveFile));
-    context.subscriptions.push(vscode.commands.registerCommand(internalName + ".clearAll", _clearAll));
+    context.subscriptions.push(vscode.commands.registerCommand(`${internalName}.clearFile`, _clearActiveFile));
+    context.subscriptions.push(vscode.commands.registerCommand(`${internalName}.clearAll`, _clearAll));
 }
 
 export function deactivate() {}

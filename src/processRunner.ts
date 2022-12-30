@@ -65,7 +65,7 @@ function runProcess(
     return new Promise((resolve) => {
         logger.appendLine(`> Running '${name}' task...`);
         logger.appendLine(`> Command: '${command}'`);
-        logger.appendLine(`> Working Directory: '${workingDirectory}'`);
+        logger.appendLine(`> Working Directory: '${workingDirectory.fsPath}'`);
 
         _processes.set(
             processId,
