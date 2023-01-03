@@ -1,34 +1,35 @@
 import * as vscode from "vscode";
 import {
-    displayName,
-    SeverityKeywords,
-    getCompilerEnabled,
-    getCompilerParserExpression,
-    getCompilerDiagnosticKeywords,
-    getClangTidyEnabled,
-    getClangTidyParserExpression,
-    getClangTidyDiagnosticKeywords,
-    getCppCheckEnabled,
-    getCppCheckParserExpression,
-    getCppCheckDiagnosticKeywords,
-    getMaximumParallelFilesChecked,
-    getCompileTaskForFile,
-    getClangTidyTaskForFile,
-    getCppCheckTaskForFile
+    DISPLAY_NAME,
+    CompilerOption,
+    ClangTidyOption,
+    CppCheckOption,
+    GeneralOption,
+    getCompilerOption,
+    getClangTidyOption,
+    getCppCheckOption,
+    getGeneralOption
 } from "./configuration";
 import {updateDiagnostics} from "./diagnostics";
 import {ReturnedOutput, runCommandOnProcess} from "./processRunner";
+import {getCompileTask, getClangTidyTask, getCppCheckTask} from "./tasks";
+
+class DiagnosisKeywords {
+    constructor(readonly errors: string[], readonly warnings: string[], readonly information: string[]) {
+        this.errors = errors;
+        this.warnings = warnings;
+        this.information = information;
+    }
+}
 
 export class TaskResult {
-    constructor(output: string, parsingExpression: RegExp, severityKeywords: SeverityKeywords) {
+    constructor(readonly output: string, readonly parsingExpression: RegExp, keywords: string[][]) {
         this.output = output;
         this.parsingExpression = parsingExpression;
-        this.severityKeywords = severityKeywords;
+        this.diagnosisKeywords = new DiagnosisKeywords(keywords[0], keywords[1], keywords[2]);
     }
 
-    output: string;
-    parsingExpression: RegExp;
-    severityKeywords: SeverityKeywords;
+    readonly diagnosisKeywords: DiagnosisKeywords;
 }
 
 let _running: vscode.Uri[] = [];
@@ -45,11 +46,11 @@ function showProgress(status: vscode.StatusBarItem, logger: vscode.OutputChannel
     const runCount = _running.length;
     const queueCount = _runQueue.length;
 
-    let tooltip = `${displayName}: idle`;
+    let tooltip = `${DISPLAY_NAME}: idle`;
     let text = "-";
 
     if (runCount > 0 && queueCount > 0) {
-        tooltip = `${displayName}: ${runCount} processes running, ${queueCount} processes in run queue`;
+        tooltip = `${DISPLAY_NAME}: ${runCount} processes running, ${queueCount} processes in run queue`;
         text = `${_running.length} | ${_runQueue.length}`;
 
         tooltip += "\n\n Running:";
@@ -61,7 +62,7 @@ function showProgress(status: vscode.StatusBarItem, logger: vscode.OutputChannel
             tooltip += `\n ${file.fsPath}`;
         }
     } else if (runCount > 0) {
-        tooltip = `${displayName}: ${runCount} processes running`;
+        tooltip = `${DISPLAY_NAME}: ${runCount} processes running`;
         text = `${_running.length}`;
 
         tooltip += "\n\n Running:";
@@ -81,7 +82,7 @@ function showProgress(status: vscode.StatusBarItem, logger: vscode.OutputChannel
     }
 }
 
-export async function runOnFile(
+export async function run(
     file: vscode.Uri,
     status: vscode.StatusBarItem,
     logger: vscode.OutputChannel,
@@ -90,7 +91,7 @@ export async function runOnFile(
     if (_running.includes(file)) {
         logger.appendLine(`> Task is already running for file: ${file.fsPath}. Skipping duplicate task...`);
         return;
-    } else if (_running.length >= getMaximumParallelFilesChecked()) {
+    } else if (_running.length >= getGeneralOption<number>(GeneralOption.maximumParallelTasks)) {
         if (!_runQueue.includes(file)) {
             logger.appendLine(`> Task moved to queue for file: ${file.fsPath}.`);
             _runQueue = [file, ..._runQueue];
@@ -113,9 +114,15 @@ export async function runOnFile(
         }
 
         result = await Promise.all([
-            getCompilerEnabled() ? runCommandOnProcess(getCompileTaskForFile(file), ReturnedOutput.ERROR, logger) : empty(),
-            getClangTidyEnabled() ? runCommandOnProcess(getClangTidyTaskForFile(file), ReturnedOutput.NORMAL, logger) : empty(),
-            getCppCheckEnabled() ? runCommandOnProcess(getCppCheckTaskForFile(file), ReturnedOutput.ERROR, logger) : empty()
+            getCompilerOption<boolean>(CompilerOption.enabled)
+                ? runCommandOnProcess(getCompileTask(file), ReturnedOutput.error, logger)
+                : empty(),
+            getClangTidyOption<boolean>(ClangTidyOption.enabled)
+                ? runCommandOnProcess(getClangTidyTask(file), ReturnedOutput.normal, logger)
+                : empty(),
+            getCppCheckOption<boolean>(CppCheckOption.enabled)
+                ? runCommandOnProcess(getCppCheckTask(file), ReturnedOutput.error, logger)
+                : empty()
         ]);
     } catch (error) {
         success = false;
@@ -133,9 +140,21 @@ export async function runOnFile(
             updateDiagnostics(
                 file,
                 [
-                    new TaskResult(result[0], new RegExp(getCompilerParserExpression(), "g"), getCompilerDiagnosticKeywords()),
-                    new TaskResult(result[1], new RegExp(getClangTidyParserExpression(), "g"), getClangTidyDiagnosticKeywords()),
-                    new TaskResult(result[2], new RegExp(getCppCheckParserExpression(), "g"), getCppCheckDiagnosticKeywords())
+                    new TaskResult(
+                        result[0],
+                        new RegExp(getCompilerOption<string>(CompilerOption.parsingRegex), "g"),
+                        getCompilerOption<string[][]>(CompilerOption.diagnosisKeywords)
+                    ),
+                    new TaskResult(
+                        result[1],
+                        new RegExp(getClangTidyOption<string>(ClangTidyOption.parsingRegex), "g"),
+                        getClangTidyOption<string[][]>(ClangTidyOption.diagnosisKeywords)
+                    ),
+                    new TaskResult(
+                        result[2],
+                        new RegExp(getCppCheckOption<string>(CppCheckOption.parsingRegex), "g"),
+                        getCppCheckOption<string[][]>(CppCheckOption.diagnosisKeywords)
+                    )
                 ],
                 diagnosticsCollection
             );
@@ -151,7 +170,7 @@ export async function runOnFile(
         _runQueue = _runQueue.slice(1);
         showProgress(status, logger);
 
-        await runOnFile(newFileToCheck, status, logger, diagnosticsCollection);
+        await run(newFileToCheck, status, logger, diagnosticsCollection);
     }
 }
 

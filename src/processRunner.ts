@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import {ChildProcess, exec} from "child_process";
-import {Task, getShowInformationDialog, getShowOutputFromLinters} from "./configuration";
+import {GeneralOption, getGeneralOption} from "./configuration";
+import {Task} from "./tasks";
 
 const _processes = new Map<string, ChildProcess>();
 const _times = new Map<string, number[]>();
@@ -24,13 +25,8 @@ function calculateTimeValues(name: string, beginTime: number, logger: vscode.Out
 }
 
 class ProcessOutput {
-    constructor(normal: string, error: string) {
-        this.normal = normal;
-        this.error = error;
-    }
-
-    normal: string;
-    error: string;
+    normal: string = "";
+    error: string = "";
 }
 
 function killProcess(process: ChildProcess | undefined, name: string, logger: vscode.OutputChannel): void {
@@ -70,9 +66,9 @@ function runProcess(
         _processes.set(
             processId,
             exec(command, {cwd: workingDirectory.fsPath}, (error, stdout, stderr) => {
-                const result = new ProcessOutput("", "");
+                const result = new ProcessOutput();
                 if (!error || (!!error && !error.killed)) {
-                    if (getShowOutputFromLinters()) {
+                    if (getGeneralOption<boolean>(GeneralOption.showOutputFromLinters)) {
                         if (!!stdout && stdout.length > 0) {
                             logger.appendLine(stdout);
                         }
@@ -95,9 +91,9 @@ function runProcess(
 }
 
 export enum ReturnedOutput {
-    NORMAL,
-    ERROR,
-    BOTH
+    normal,
+    error,
+    both
 }
 
 export function runCommandOnProcess(task: Task, returnedOutput: ReturnedOutput, logger: vscode.OutputChannel): Thenable<string> {
@@ -105,7 +101,9 @@ export function runCommandOnProcess(task: Task, returnedOutput: ReturnedOutput, 
     return vscode.window.withProgress(
         {
             location: vscode.ProgressLocation.Notification,
-            title: getShowInformationDialog() ? `Running '${task.name}' task on '${task.command.file.fsPath}'...` : "",
+            title: getGeneralOption<boolean>(GeneralOption.showInformationDialog)
+                ? `Running '${task.name}' task on '${task.command.file.fsPath}'...`
+                : "",
             cancellable: true
         },
         (progress, token) => {
@@ -117,13 +115,13 @@ export function runCommandOnProcess(task: Task, returnedOutput: ReturnedOutput, 
             return new Promise((resolve) => {
                 runProcess(processId, task.name, task.command.command.join(" "), task.command.directory, logger).then((result) => {
                     switch (returnedOutput) {
-                        case ReturnedOutput.NORMAL: {
+                        case ReturnedOutput.normal: {
                             return resolve(result.normal);
                         }
-                        case ReturnedOutput.ERROR: {
+                        case ReturnedOutput.error: {
                             return resolve(result.error);
                         }
-                        case ReturnedOutput.BOTH: {
+                        case ReturnedOutput.both: {
                             return resolve(result.normal + result.error);
                         }
                     }

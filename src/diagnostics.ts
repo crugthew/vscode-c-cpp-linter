@@ -1,17 +1,14 @@
 import * as vscode from "vscode";
 import {existsSync} from "fs";
-import {internalName, getIgnoredPaths} from "./configuration";
+import {INTERNAL_NAME, GeneralOption, getGeneralOption} from "./configuration";
 import {TaskResult} from "./runner";
 
 class DiagnosticForFile {
-    constructor(file: vscode.Uri, diagnostic: vscode.Diagnostic) {
+    constructor(readonly file: vscode.Uri, readonly diagnostic: vscode.Diagnostic) {
         this.file = file;
         this.diagnostic = diagnostic;
-        this.diagnostic.source = internalName;
+        this.diagnostic.source = INTERNAL_NAME;
     }
-
-    file: vscode.Uri;
-    diagnostic: vscode.Diagnostic;
 }
 
 function generateDiagnosticsForFiles(taskResult: TaskResult): DiagnosticForFile[] {
@@ -32,7 +29,7 @@ function generateDiagnosticsForFiles(taskResult: TaskResult): DiagnosticForFile[
                     }
 
                     let shouldBreak = false;
-                    for (const toIgnore of getIgnoredPaths()) {
+                    for (const toIgnore of getGeneralOption<RegExp[]>(GeneralOption.ignoredPaths)) {
                         if (!!file.match(toIgnore)) {
                             shouldBreak = true;
                             break;
@@ -43,11 +40,11 @@ function generateDiagnosticsForFiles(taskResult: TaskResult): DiagnosticForFile[
                     }
 
                     let severity;
-                    if (taskResult.severityKeywords.errors.includes(severityString)) {
+                    if (taskResult.diagnosisKeywords.errors.includes(severityString)) {
                         severity = vscode.DiagnosticSeverity.Error;
-                    } else if (taskResult.severityKeywords.warnings.includes(severityString)) {
+                    } else if (taskResult.diagnosisKeywords.warnings.includes(severityString)) {
                         severity = vscode.DiagnosticSeverity.Warning;
-                    } else if (taskResult.severityKeywords.information.includes(severityString)) {
+                    } else if (taskResult.diagnosisKeywords.information.includes(severityString)) {
                         severity = vscode.DiagnosticSeverity.Information;
                     } else {
                         continue;
@@ -110,7 +107,7 @@ export function updateDiagnostics(file: vscode.Uri, taskResults: TaskResult[], d
     update(diagnosticsCollection);
 }
 
-export function clearDiagnosticsForFile(file: vscode.Uri, diagnosticsCollection: vscode.DiagnosticCollection): void {
+export function clearDiagnostics(file: vscode.Uri, diagnosticsCollection: vscode.DiagnosticCollection): void {
     _diagnostics.set(file.fsPath, []);
     update(diagnosticsCollection);
 }

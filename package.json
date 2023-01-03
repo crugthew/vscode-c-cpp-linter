@@ -1,6 +1,6 @@
 {
     "name": "c-cpp-linter",
-    "version": "1.2.1",
+    "version": "1.3.0",
     "publisher": "crugthew",
     "repository": {
         "type": "git",
@@ -23,7 +23,7 @@
         "clang",
         "clang-tidy"
     ],
-    "preview": false,
+    "preview": true,
     "main": "./out/extension.js",
     "contributes": {
         "commands": [
@@ -57,34 +57,34 @@
         "configuration": {
             "title": "c-cpp-linter",
             "properties": {
-                "c-cpp-linter.compilerEnabled": {
+                "c-cpp-linter.compiler.enabled": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Compiler running is enabled."
+                    "description": "Whether running the compiler is enabled."
                 },
-                "c-cpp-linter.compilerPath": {
+                "c-cpp-linter.compiler.path": {
                     "type": "string",
                     "default": "/usr/bin/clang",
-                    "description": "The compiler to use. This replaces the compiler used in 'compile_commands.json'."
+                    "description": "The compiler binary path. This replaces the compiler used in 'compile_commands.json'."
                 },
-                "c-cpp-linter.compilationStageFlag": {
+                "c-cpp-linter.compiler.compilationStateFlag": {
                     "type": "string",
                     "default": "-fsyntax-only",
                     "description": "Can be used to only run the compilation stage and not full assembly. This replaces the '-c' flag."
                 },
-                "c-cpp-linter.additionalCompilationFlags": {
+                "c-cpp-linter.compiler.additionalFlags": {
                     "type": "array",
                     "default": [
                         "-Wno-unknown-warning-option"
                     ],
-                    "description": "Can be used to add additional flags for the compilation."
+                    "description": "Can be used to add additional flags for the compiler."
                 },
-                "c-cpp-linter.compilerParserExpression": {
+                "c-cpp-linter.compiler.parsingRegex": {
                     "type": "string",
                     "default": "(.*):(\\d+):(\\d+): (error|warning): (.*)",
-                    "description": "The regular expression used to parse output."
+                    "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords, message."
                 },
-                "c-cpp-linter.compilerDiagnosticKeywords": {
+                "c-cpp-linter.compiler.diagnosisKeywords": {
                     "type": "array",
                     "default": [
                         [
@@ -95,29 +95,40 @@
                         ],
                         []
                     ],
-                    "description": "Keywords for outputs that should be treated as errors, warnings, information."
+                    "description": "Keywords for output that should be grouped by errors, warnings, information."
                 },
-                "c-cpp-linter.clangTidyEnabled": {
+                "c-cpp-linter.clangTidy.enabled": {
                     "type": "boolean",
                     "default": true,
-                    "description": "'clang-tidy' running is enabled."
+                    "description": "Whether running 'clang-tidy' is enabled."
                 },
-                "c-cpp-linter.clangTidyPath": {
+                "c-cpp-linter.clangTidy.path": {
                     "type": "string",
                     "default": "/usr/bin/clang-tidy",
-                    "description": "'clang-tidy' path."
+                    "description": "The 'clang-tidy' binary path."
                 },
-                "c-cpp-linter.clangTidyChecksPath": {
-                    "type": "string",
-                    "default": "${workspaceFolder}/.vscode/.clang-tidy.json",
-                    "description": "Path to the 'clang-tidy' configuration file."
+                "c-cpp-linter.clangTidy.checks": {
+                    "type": "object",
+                    "default": {
+                        "enabled": [],
+                        "disabled": [
+                            "boost-*",
+                            "bugprone-*",
+                            "concurrency-*",
+                            "hicpp-*",
+                            "modernize-*",
+                            "performance-*",
+                            "readability-*"
+                        ]
+                    },
+                    "description": "The checks passed to `clang-tidy`."
                 },
-                "c-cpp-linter.clangTidyParserExpression": {
+                "c-cpp-linter.clangTidy.parsingRegex": {
                     "type": "string",
                     "default": "(.*):(\\d+):(\\d+): (error|warning): (.*)",
-                    "description": "The regular expression used to parse output."
+                    "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords, message."
                 },
-                "c-cpp-linter.clangTidyDiagnosticKeywords": {
+                "c-cpp-linter.clangTidy.diagnosisKeywords": {
                     "type": "array",
                     "default": [
                         [
@@ -128,27 +139,26 @@
                         ],
                         []
                     ],
-                    "description": "Keywords for outputs that should be treated as errors, warnings, information."
+                    "description": "Keywords for output that should be grouped by errors, warnings, information."
                 },
-                "c-cpp-linter.cppCheckEnabled": {
+                "c-cpp-linter.cppCheck.enabled": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Running 'cppcheck' enabled."
+                    "description": "Whether running 'cppcheck' is enabled."
                 },
-                "c-cpp-linter.cppCheckPath": {
+                "c-cpp-linter.cppCheck.path": {
                     "type": "string",
                     "default": "/usr/bin/cppcheck",
-                    "description": "'cppcheck' path."
+                    "description": "'The 'cppcheck' binary path."
                 },
-                "c-cpp-linter.additionalCppCheckFlags": {
+                "c-cpp-linter.cppCheck.additionalFlags": {
                     "type": "array",
                     "default": [
-                        "--std=c++17",
-                        "--platform=unix64"
+                        "--std=c++17"
                     ],
-                    "description": "Additional flags for 'cppcheck'."
+                    "description": "Can be used to add additional flags for `cppcheck`."
                 },
-                "c-cpp-linter.cppCheckChecks": {
+                "c-cpp-linter.cppCheck.checks": {
                     "type": "array",
                     "default": [
                         "warning",
@@ -157,14 +167,14 @@
                         "portability",
                         "information"
                     ],
-                    "description": "Checks to use with 'cppcheck'."
+                    "description": "The checks passed to `cppcheck`."
                 },
-                "c-cpp-linter.cppCheckParserExpression": {
+                "c-cpp-linter.cppCheck.parsingRegex": {
                     "type": "string",
                     "default": "(.*):(\\d+):(\\d+): (error|warning|style|performance|portability|information): (.*)",
-                    "description": "The regular expression used to parse output."
+                    "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords, message."
                 },
-                "c-cpp-linter.cppCheckDiagnosticKeywords": {
+                "c-cpp-linter.cppCheck.diagnosisKeywords": {
                     "type": "array",
                     "default": [
                         [
@@ -180,29 +190,29 @@
                             "information"
                         ]
                     ],
-                    "description": "Keywords for outputs that should be treated as errors, warnings, information."
+                    "description": "Keywords for output that should be grouped by errors, warnings, information."
                 },
-                "c-cpp-linter.buildFolderPath": {
+                "c-cpp-linter.general.buildFolderPath": {
                     "type": "string",
                     "default": "${workspaceFolder}/build",
                     "description": "Path to the folder where 'compile_commands.json' exists."
                 },
-                "c-cpp-linter.showInformationDialog": {
+                "c-cpp-linter.general.showInformationDialog": {
                     "type": "boolean",
                     "default": false,
                     "description": "Show the information dialog."
                 },
-                "c-cpp-linter.showOutputFromLinters": {
+                "c-cpp-linter.general.showOutputFromLinters": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Show all output from linters."
+                    "description": "Show output from linters."
                 },
-                "c-cpp-linter.maximumParallelFilesChecked": {
+                "c-cpp-linter.general.maximumParallelTasks": {
                     "type": "number",
                     "default": 4,
-                    "description": "Maximum number of files checked in parallel. Others will be added onto a queue."
+                    "description": "Maximum number of tasks to run in parallel. Others will be added onto a queue."
                 },
-                "c-cpp-linter.sourceFileExtensions": {
+                "c-cpp-linter.general.sourceFileExtensions": {
                     "type": "array",
                     "default": [
                         "c",
@@ -210,20 +220,20 @@
                     ],
                     "description": "Source file extensions."
                 },
-                "c-cpp-linter.ignoredPaths": {
+                "c-cpp-linter.general.ignoredPaths": {
                     "type": "array",
                     "default": [],
-                    "description": "List of regular expression paths for which diagnostics will not be shown."
+                    "description": "List of regular expressions for paths which should be ignored when generating diagnostics."
                 },
-                "c-cpp-linter.runOnOpen": {
+                "c-cpp-linter.general.runOnOpen": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Run on open."
+                    "description": "Whether to run on open."
                 },
-                "c-cpp-linter.runOnSave": {
+                "c-cpp-linter.general.runOnSave": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Run on save."
+                    "description": "Whether to run on save."
                 }
             }
         }

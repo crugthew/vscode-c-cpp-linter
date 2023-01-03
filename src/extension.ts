@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import {internalName, displayName, getSourceFileExtensions, getRunOnOpen, getRunOnSave} from "./configuration";
-import {clearDiagnosticsForFile, clearAllDiagnostics} from "./diagnostics";
-import {runOnFile, cancelRun, cancelAllRuns} from "./runner";
+import {INTERNAL_NAME, DISPLAY_NAME, GeneralOption, getGeneralOption} from "./configuration";
+import {clearDiagnostics, clearAllDiagnostics} from "./diagnostics";
+import {run, cancelRun, cancelAllRuns} from "./runner";
 
 function toFileUri(file: vscode.TextDocument): vscode.Uri | null {
     if (file.uri.scheme !== "file") {
@@ -14,7 +14,7 @@ function toFileUri(file: vscode.TextDocument): vscode.Uri | null {
 
     const tokens = file.fileName.toLowerCase().split(".");
     const extension = tokens[tokens.length - 1].toLowerCase();
-    if (!getSourceFileExtensions().includes(extension)) {
+    if (!getGeneralOption<string[]>(GeneralOption.sourceFileExtensions).includes(extension)) {
         return null;
     }
 
@@ -23,10 +23,10 @@ function toFileUri(file: vscode.TextDocument): vscode.Uri | null {
 
 export function activate(context: vscode.ExtensionContext): void {
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
-    status.name = displayName;
+    status.name = DISPLAY_NAME;
     status.show();
 
-    const logger = vscode.window.createOutputChannel(internalName);
+    const logger = vscode.window.createOutputChannel(INTERNAL_NAME);
     context.subscriptions.push(logger);
 
     const diagnosticsCollection = vscode.languages.createDiagnosticCollection();
@@ -43,17 +43,17 @@ export function activate(context: vscode.ExtensionContext): void {
             return;
         }
 
-        return await runOnFile(fileUri, status, logger, diagnosticsCollection);
+        return await run(fileUri, status, logger, diagnosticsCollection);
     }
 
     async function _runOnOpen(file: vscode.TextDocument): Promise<void> {
-        if (getRunOnOpen()) {
+        if (getGeneralOption<boolean>(GeneralOption.runOnOpen)) {
             return await _run(file);
         }
     }
 
     async function _runOnSave(file: vscode.TextDocument): Promise<void> {
-        if (getRunOnSave()) {
+        if (getGeneralOption<boolean>(GeneralOption.runOnSave)) {
             return await _run(file);
         }
     }
@@ -65,7 +65,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         cancelRun(fileUri);
-        clearDiagnosticsForFile(fileUri, diagnosticsCollection);
+        clearDiagnostics(fileUri, diagnosticsCollection);
     }
 
     vscode.workspace.onDidOpenTextDocument(_runOnOpen);
@@ -80,7 +80,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return await _run(vscode.window.activeTextEditor.document);
     }
 
-    context.subscriptions.push(vscode.commands.registerCommand(`${internalName}.run`, _runOnActiveFile));
+    context.subscriptions.push(vscode.commands.registerCommand(`${INTERNAL_NAME}.run`, _runOnActiveFile));
 
     function _clearActiveFile(): void {
         if (vscode.window.activeTextEditor === undefined) {
@@ -93,7 +93,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         cancelRun(fileUri);
-        clearDiagnosticsForFile(fileUri, diagnosticsCollection);
+        clearDiagnostics(fileUri, diagnosticsCollection);
     }
 
     function _clearAll(): void {
@@ -101,8 +101,8 @@ export function activate(context: vscode.ExtensionContext): void {
         clearAllDiagnostics(diagnosticsCollection);
     }
 
-    context.subscriptions.push(vscode.commands.registerCommand(`${internalName}.clearFile`, _clearActiveFile));
-    context.subscriptions.push(vscode.commands.registerCommand(`${internalName}.clearAll`, _clearAll));
+    context.subscriptions.push(vscode.commands.registerCommand(`${INTERNAL_NAME}.clearFile`, _clearActiveFile));
+    context.subscriptions.push(vscode.commands.registerCommand(`${INTERNAL_NAME}.clearAll`, _clearAll));
 }
 
 export function deactivate() {}
