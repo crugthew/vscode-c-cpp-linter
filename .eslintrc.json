@@ -1,11 +1,16 @@
 {
-    "ignorePatterns": ["out", "**/*.d.ts"],
+    "ignorePatterns": [
+        "out",
+        "**/*.d.ts"
+    ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": 6,
         "sourceType": "module"
     },
-    "plugins": ["@typescript-eslint"],
+    "plugins": [
+        "@typescript-eslint"
+    ],
     "root": true,
     "rules": {
         "@typescript-eslint/naming-convention": "warn",

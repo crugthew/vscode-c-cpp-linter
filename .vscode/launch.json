@@ -1,9 +1,13 @@
 {
     "configurations": [
         {
-            "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}"
+            ],
             "name": "Run Extension",
-            "outFiles": ["${workspaceFolder}/out/**/*.js"],
+            "outFiles": [
+                "${workspaceFolder}/out/**/*.js"
+            ],
             "preLaunchTask": "${defaultBuildTask}",
             "request": "launch",
             "type": "extensionHost"
