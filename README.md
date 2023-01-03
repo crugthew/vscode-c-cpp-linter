@@ -11,10 +11,17 @@ This extension aims to be:
 * Working with minimal additional project configuration;
 
 As of this release the extension can be used to gather linting information from these providers:
-* Compiler ([clang](http://clang.llvm.org), [GCC](http://gcc.gnu.org), ...)
+* Compiler ([GCC](http://gcc.gnu.org), [clang](http://clang.llvm.org) ...)
 * [Clang-Tidy](http://clang.llvm.org/extra/clang-tidy)
 * [CppCheck](http://cppcheck.net)
-* Suggestions..?
+
+> Note: Compiler option means that this extension runs the selected compiler by running only the syntax processing stage and the static analyzer. Default configuration is provided for `g++` though it can be easily adapted for `clang`.
+
+By default all the tools are enabled and expected to be installed on the host system. If any tool is missing you will get an error each time the extension tries to run. Please turn disable running a specific tool in settings if you do not plan to use it, for example:
+
+```
+"c-cpp-linter.cppCheck.enabled": false
+```
 
 ## Requirements
 
@@ -28,11 +35,9 @@ Each tool can be configured separately. Please refer to the contributions sectio
 
 Linters can change their output, so the extension provides parsing regex customization support. If you use an older version of the above mentioned tools and the diagnostics are not generated please check if the output is parsed correctly. For example for `Cppcheck 1.76.1` (what is currently in Debian 9) the settings should look something like this:
 
-```json:
-"c-cpp-linter.cppCheck.additionalFlags": [
-    "--template={file}:{line}:{severity}:{message}"
-],
-"c-cpp-linter.cppCheck.parsingRegex": "(.*):(\\d+)():(error|warning|style|performance|portability|information):(.*)"
+```
+"c-cpp-linter.cppCheck.additionalFlags": ["--template={file}:{line}:{severity}:{message}"],
+"c-cpp-linter.cppCheck.parsingRegex": "(\\S.*):(\\d+)(.*?):(error|warning|style|performance|portability|information):(\\S.*)"
 ```
 
 ## Environment

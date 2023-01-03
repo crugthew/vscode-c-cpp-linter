@@ -1,6 +1,6 @@
 {
     "name": "c-cpp-linter",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "publisher": "crugthew",
     "repository": {
         "type": "git",
@@ -64,7 +64,7 @@
                 },
                 "c-cpp-linter.compiler.path": {
                     "type": "string",
-                    "default": "/usr/bin/clang",
+                    "default": "/usr/bin/g++",
                     "description": "The compiler binary path. This replaces the compiler used in 'compile_commands.json'."
                 },
                 "c-cpp-linter.compiler.compilationStateFlag": {
@@ -75,13 +75,20 @@
                 "c-cpp-linter.compiler.additionalFlags": {
                     "type": "array",
                     "default": [
+                        "-fanalyzer",
+                        "-Werror",
+                        "-Wall",
+                        "-Wextra",
+                        "-Wformat",
+                        "-Wpedantic",
+                        "-Weffc++",
                         "-Wno-unknown-warning-option"
                     ],
                     "description": "Can be used to add additional flags for the compiler."
                 },
                 "c-cpp-linter.compiler.parsingRegex": {
                     "type": "string",
-                    "default": "(.*):(\\d+):(\\d+): (error|warning): (.*)",
+                    "default": "(\\S.*):(\\d+):(\\d+):.*?(error|warning):\\s*?(\\S.*)",
                     "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords, message."
                 },
                 "c-cpp-linter.compiler.diagnosisKeywords": {
@@ -125,7 +132,7 @@
                 },
                 "c-cpp-linter.clangTidy.parsingRegex": {
                     "type": "string",
-                    "default": "(.*):(\\d+):(\\d+): (error|warning): (.*)",
+                    "default": "(\\S.*):(\\d+):(\\d+):.*?(error|warning):\\s*?(\\S.*)",
                     "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords, message."
                 },
                 "c-cpp-linter.clangTidy.diagnosisKeywords": {
@@ -171,7 +178,7 @@
                 },
                 "c-cpp-linter.cppCheck.parsingRegex": {
                     "type": "string",
-                    "default": "(.*):(\\d+):(\\d+): (error|warning|style|performance|portability|information): (.*)",
+                    "default": "(\\S.*):(\\d+):(\\d+):.*?(error|warning|style|performance|portability|information):\\s*?(\\S.*)",
                     "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords, message."
                 },
                 "c-cpp-linter.cppCheck.diagnosisKeywords": {

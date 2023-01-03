@@ -84,11 +84,10 @@ export function getCompileTask(file: vscode.Uri): Task {
     }
 
     command[compilationStageFlagIndex] = compilationStateFlag;
-    getCompilerOption<string[]>(CompilerOption.additionalFlags).forEach((value: string) => {
-        command.push(value);
-    });
-
-    return new Task(compiler.fsPath, new Command(file, getWorkspaceFolder(file), command));
+    return new Task(
+        compiler.fsPath,
+        new Command(file, getWorkspaceFolder(file), command.concat(getCompilerOption<string[]>(CompilerOption.additionalFlags)))
+    );
 }
 
 export function getClangTidyTask(file: vscode.Uri): Task {
@@ -106,10 +105,7 @@ export function getClangTidyTask(file: vscode.Uri): Task {
         throw new Error(`Incorrect format for ${name} checks.`);
     }
 
-    const checks = ["-*"];
-    for (const key of clangTidyChecksJson["enabled"]) {
-        checks.push(key);
-    }
+    const checks = ["-*"].concat(clangTidyChecksJson["enabled"]);
     for (const key of clangTidyChecksJson["disabled"]) {
         checks.push(`-${key}`);
     }
@@ -136,10 +132,9 @@ export function getCppCheckTask(file: vscode.Uri): Task {
         throw new Error(`${name} does not exist in path: ${linter.fsPath}`);
     }
 
-    const command = [linter.fsPath, `--enable=${getCppCheckOption<string[]>(CppCheckOption.checks).join(",")}`];
-    getCppCheckOption<string[]>(CppCheckOption.additionalFlags).forEach((value: string) => {
-        command.push(value);
-    });
+    const command = [linter.fsPath, `--enable=${getCppCheckOption<string[]>(CppCheckOption.checks).join(",")}`].concat(
+        getCppCheckOption<string[]>(CppCheckOption.additionalFlags)
+    );
     getCompilationCommand(file).forEach((value: string) => {
         const tokens = value.split(".");
         if (

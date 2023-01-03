@@ -50,16 +50,28 @@ function generateDiagnosticsForFiles(taskResult: TaskResult): DiagnosticForFile[
                         continue;
                     }
 
-                    diagnostics.push(
-                        new DiagnosticForFile(
-                            vscode.Uri.file(file),
-                            new vscode.Diagnostic(
-                                new vscode.Range(new vscode.Position(line - 1, column - 1), new vscode.Position(line - 1, column - 1)),
-                                text,
-                                severity
-                            )
+                    const result = new DiagnosticForFile(
+                        vscode.Uri.file(file),
+                        new vscode.Diagnostic(
+                            new vscode.Range(new vscode.Position(line - 1, column - 1), new vscode.Position(line - 1, column - 1)),
+                            text,
+                            severity
                         )
                     );
+
+                    const indexOfResult = diagnostics.findIndex((value: DiagnosticForFile) => {
+                        return (
+                            value.file.fsPath === result.file.fsPath &&
+                            value.diagnostic.range.isEqual(result.diagnostic.range) &&
+                            value.diagnostic.severity === result.diagnostic.severity
+                        );
+                    });
+                    if (indexOfResult !== -1) {
+                        diagnostics[indexOfResult].diagnostic.message += `\n${text}`; // compiler printing style
+                        continue;
+                    }
+
+                    diagnostics.push(result);
                 }
             }
         }
