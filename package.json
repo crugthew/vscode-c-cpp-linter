@@ -1,6 +1,6 @@
 {
     "name": "c-cpp-linter",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "publisher": "crugthew",
     "repository": {
         "type": "git",
@@ -75,21 +75,20 @@
                 "c-cpp-linter.compiler.additionalFlags": {
                     "type": "array",
                     "default": [
-                        "-fanalyzer",
-                        "-Werror",
+                        "-Wno-unknown-warning-option",
                         "-Wall",
                         "-Wextra",
                         "-Wformat",
                         "-Wpedantic",
                         "-Weffc++",
-                        "-Wno-unknown-warning-option"
+                        "-fanalyzer"
                     ],
                     "description": "Can be used to add additional flags for the compiler."
                 },
                 "c-cpp-linter.compiler.parsingRegex": {
                     "type": "string",
-                    "default": "(\\S.*):(\\d+):(\\d+):.*?(error|warning):\\s*?(\\S.*)",
-                    "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords, message."
+                    "default": "^(.*?):(\\d+):(\\d*):?\\s+(?:fatal\\s+)?(warning|error):\\s+(.*)$",
+                    "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords."
                 },
                 "c-cpp-linter.compiler.diagnosisKeywords": {
                     "type": "array",
@@ -117,8 +116,8 @@
                 "c-cpp-linter.clangTidy.checks": {
                     "type": "object",
                     "default": {
-                        "enabled": [],
-                        "disabled": [
+                        "disabled": [],
+                        "enabled": [
                             "boost-*",
                             "bugprone-*",
                             "concurrency-*",
@@ -132,8 +131,8 @@
                 },
                 "c-cpp-linter.clangTidy.parsingRegex": {
                     "type": "string",
-                    "default": "(\\S.*):(\\d+):(\\d+):.*?(error|warning):\\s*?(\\S.*)",
-                    "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords, message."
+                    "default": "^(.*?):(\\d+):(\\d*):?\\s+(warning|error):\\s+(.*)$",
+                    "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords."
                 },
                 "c-cpp-linter.clangTidy.diagnosisKeywords": {
                     "type": "array",
@@ -178,8 +177,8 @@
                 },
                 "c-cpp-linter.cppCheck.parsingRegex": {
                     "type": "string",
-                    "default": "(\\S.*):(\\d+):(\\d+):.*?(error|warning|style|performance|portability|information):\\s*?(\\S.*)",
-                    "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords, message."
+                    "default": "^(.*?):(\\d+):(\\d*):?\\s+(error|warning|style|performance|portability|information):\\s+(.*)$",
+                    "description": "The regular expression used to parse the output. Groups are: file, line, column, keywords."
                 },
                 "c-cpp-linter.cppCheck.diagnosisKeywords": {
                     "type": "array",
@@ -250,18 +249,21 @@
         "onLanguage:c",
         "onCommand:c-cpp-linter.run"
     ],
+    "dependencies": {
+        "async-mutex": "^0.4.0"
+    },
     "devDependencies": {
-        "@types/vscode": "^1.74.0",
         "@types/glob": "^8.0.0",
         "@types/mocha": "^10.0.1",
         "@types/node": "16.x",
+        "@types/vscode": "^1.74.0",
         "@typescript-eslint/eslint-plugin": "^5.45.0",
         "@typescript-eslint/parser": "^5.45.0",
+        "@vscode/test-electron": "^2.2.0",
         "eslint": "^8.28.0",
         "glob": "^8.0.3",
         "mocha": "^10.1.0",
-        "typescript": "^4.9.3",
-        "@vscode/test-electron": "^2.2.0"
+        "typescript": "^4.9.3"
     },
     "extensionKind": [
         "workspace"

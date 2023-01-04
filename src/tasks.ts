@@ -66,9 +66,9 @@ export function getCompileTask(file: vscode.Uri): Task {
     }
 
     let command = getCompilationCommand(file);
-    command.every((value: string, index: number) => {
+    command.every((value: string) => {
         if (value[0] === "-") {
-            command = [compiler.fsPath, ...command.slice(index)];
+            command.unshift(compiler.fsPath);
             return false;
         }
         return true;
@@ -79,7 +79,7 @@ export function getCompileTask(file: vscode.Uri): Task {
         throw new Error("Compilation state flag undefined.");
     }
     const compilationStageFlagIndex = command.indexOf("-c");
-    if (-1 === compilationStageFlagIndex) {
+    if (compilationStageFlagIndex === -1) {
         throw new Error("Failed to parse compilation command.");
     }
 

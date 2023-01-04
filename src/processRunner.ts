@@ -29,8 +29,13 @@ class ProcessOutput {
     error: string = "";
 }
 
-function killProcess(process: ChildProcess | undefined, name: string, logger: vscode.OutputChannel): void {
-    if (!process) {
+function getProcessId(task: Task): string {
+    return task.command.file.fsPath + task.name;
+}
+
+function killProcess(processId: string, name: string, logger: vscode.OutputChannel): void {
+    const process = _processes.get(processId) || undefined;
+    if (process === undefined) {
         return;
     }
 
@@ -44,10 +49,6 @@ function killProcess(process: ChildProcess | undefined, name: string, logger: vs
     }
 }
 
-function stopProcess(processId: string, name: string, logger: vscode.OutputChannel): void {
-    killProcess(_processes.get(processId) || undefined, name, logger);
-}
-
 function runProcess(
     processId: string,
     name: string,
@@ -55,7 +56,7 @@ function runProcess(
     workingDirectory: vscode.Uri,
     logger: vscode.OutputChannel
 ): Thenable<ProcessOutput> {
-    killProcess(_processes.get(processId) || undefined, name, logger);
+    killProcess(processId, name, logger);
 
     const time = Date.now();
     return new Promise((resolve) => {
@@ -96,8 +97,8 @@ export enum ReturnedOutput {
     both
 }
 
-export function runCommandOnProcess(task: Task, returnedOutput: ReturnedOutput, logger: vscode.OutputChannel): Thenable<string> {
-    const processId = task.command.file.fsPath + task.name;
+export function runTask(task: Task, returnedOutput: ReturnedOutput, logger: vscode.OutputChannel): Thenable<string> {
+    const processId = getProcessId(task);
     return vscode.window.withProgress(
         {
             location: vscode.ProgressLocation.Notification,
@@ -109,7 +110,7 @@ export function runCommandOnProcess(task: Task, returnedOutput: ReturnedOutput, 
         (progress, token) => {
             token.onCancellationRequested(() => {
                 progress.report({increment: 100});
-                stopProcess(processId, task.name, logger);
+                killProcess(processId, task.name, logger);
             });
 
             return new Promise((resolve) => {
@@ -129,4 +130,8 @@ export function runCommandOnProcess(task: Task, returnedOutput: ReturnedOutput, 
             });
         }
     );
+}
+
+export function killTask(task: Task, logger: vscode.OutputChannel): void {
+    killProcess(getProcessId(task), task.name, logger);
 }

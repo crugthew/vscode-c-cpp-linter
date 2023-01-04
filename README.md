@@ -33,13 +33,6 @@ The extension expects the project to provide a `compile_commands.json` file in a
 
 Each tool can be configured separately. Please refer to the contributions section of this extension.
 
-Linters can change their output, so the extension provides parsing regex customization support. If you use an older version of the above mentioned tools and the diagnostics are not generated please check if the output is parsed correctly. For example for `Cppcheck 1.76.1` (what is currently in Debian 9) the settings should look something like this:
-
-```
-"c-cpp-linter.cppCheck.additionalFlags": ["--template={file}:{line}:{severity}:{message}"],
-"c-cpp-linter.cppCheck.parsingRegex": "(\\S.*):(\\d+)(.*?):(error|warning|style|performance|portability|information):(\\S.*)"
-```
-
 ## Environment
 
 The extension was written and tested under Linux. It should work under Windows as well, though I can not check it myself at this time.

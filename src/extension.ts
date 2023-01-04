@@ -58,13 +58,13 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     }
 
-    function _clearClosedFile(file: vscode.TextDocument): void {
+    async function _clearClosedFile(file: vscode.TextDocument): Promise<void> {
         const fileUri = toFileUri(file);
         if (!fileUri) {
             return;
         }
 
-        cancelRun(fileUri);
+        await cancelRun(fileUri, logger);
         clearDiagnostics(fileUri, diagnosticsCollection);
     }
 
@@ -82,7 +82,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     context.subscriptions.push(vscode.commands.registerCommand(`${INTERNAL_NAME}.run`, _runOnActiveFile));
 
-    function _clearActiveFile(): void {
+    async function _clearActiveFile(): Promise<void> {
         if (vscode.window.activeTextEditor === undefined) {
             return;
         }
@@ -92,12 +92,12 @@ export function activate(context: vscode.ExtensionContext): void {
             return;
         }
 
-        cancelRun(fileUri);
+        await cancelRun(fileUri, logger);
         clearDiagnostics(fileUri, diagnosticsCollection);
     }
 
-    function _clearAll(): void {
-        cancelAllRuns();
+    async function _clearAll(): Promise<void> {
+        await cancelAllRuns(logger);
         clearAllDiagnostics(diagnosticsCollection);
     }
 
