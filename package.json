@@ -1,6 +1,6 @@
 {
     "name": "c-cpp-linter",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "publisher": "crugthew",
     "repository": {
         "type": "git",
@@ -74,13 +74,12 @@
                 "c-cpp-linter.compiler.additionalFlags": {
                     "type": "array",
                     "default": [
-                        "-Wno-unknown-warning-option",
                         "-Wall",
                         "-Wextra",
                         "-Wformat",
                         "-Wpedantic",
                         "-Weffc++",
-                        "-fanalyzer"
+                        "-Wno-unknown-warning-option"
                     ],
                     "description": "Can be used to add additional flags for the compiler."
                 },
