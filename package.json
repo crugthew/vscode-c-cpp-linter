@@ -1,6 +1,6 @@
 {
     "name": "c-cpp-linter",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "publisher": "crugthew",
     "repository": {
         "type": "git",
@@ -23,7 +23,6 @@
         "clang",
         "clang-tidy"
     ],
-    "preview": true,
     "main": "./out/extension.js",
     "contributes": {
         "commands": [

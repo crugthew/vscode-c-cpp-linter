@@ -66,12 +66,15 @@ export function getCompileTask(file: vscode.Uri): Task {
     }
 
     let command = getCompilationCommand(file);
-    command.every((value: string) => {
+    command.every((value: string, index: number) => {
         if (value[0] === "-") {
-            command.unshift(compiler.fsPath);
+            command = [compiler.fsPath].concat(command.slice(index));
             return false;
         }
         return true;
+    });
+    command = command.filter((value: string) => {
+        return value !== "-Werror";
     });
 
     const compilationStateFlag = getCompilerOption<string>(CompilerOption.compilationStateFlag);
